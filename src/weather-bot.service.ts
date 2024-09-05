@@ -49,7 +49,7 @@ export class WeatherBotService {
   }
 
   
-  @Cron('43 21 * * *')
+  @Cron('0 9 * * *')
   async scheduleDailyWeather() {
     
     for (const chatId in userLocations) {
