@@ -11,7 +11,7 @@ const bot = new Telegraf(BOT_TOKEN);
 
 const WEATHER_API_KEY = process.env.WEATHER_API_KEY;
 
-const userLocations: { [chatId: string]: string } = {};
+const userLocations: { [chatId: string]: { lat?: number, lon?: number, city?: string } } = {};
 
 @Injectable()
 export class WeatherBotService {
@@ -46,12 +46,17 @@ export class WeatherBotService {
       const lat = ctx.message.location.latitude;
       const lon = ctx.message.location.longitude;
 
+      userLocations[ctx.chat.id] = { lat, lon };
+
       const weather = await this.getWeatherByCoordinates(lat, lon);
       ctx.reply(weather);
     });
 
     bot.on('text', async (ctx) => {
       const city = ctx.message.text;
+
+      userLocations[ctx.chat.id] = { city };
+
       const weather = await this.getWeather(city);
       ctx.reply(weather);
     });
@@ -64,8 +69,17 @@ export class WeatherBotService {
   async scheduleDailyWeather() {
     
     for (const chatId in userLocations) {
-      const location = userLocations[chatId];
-      const weather = await this.getWeather(location);
+      const locationData = userLocations[chatId];
+      let weather;
+      if (locationData.city) {
+        weather = await this.getWeather(locationData.city);
+      } 
+      else if (locationData.lat && locationData.lon) {
+        weather = await this.getWeatherByCoordinates(locationData.lat, locationData.lon);
+      } 
+      else {
+        continue;
+      }
       bot.telegram.sendMessage(chatId, weather);
     }
   }
