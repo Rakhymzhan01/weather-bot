@@ -21,9 +21,13 @@ export class WeatherBotService {
 
   private async getWeatherByCoordinates(lat: number, lon: number): Promise<string> {
     const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric`;
-    const response = await axios.get(url);
-    const data = response.data;
-    return `Weather in ${data.name}: ${data.weather[0].description}, temperature: ${data.main.temp}°C`;
+    try {
+      const response = await axios.get(url);
+      const data = response.data;
+      return `Weather in ${data.name}: ${data.weather[0].description}, temperature: ${data.main.temp}°C`;
+    } catch (error) {
+      return 'Unable to retrieve the weather data. Please try again later.';
+    }
   }
 
   private async getWeather(location: string): Promise<string> {
