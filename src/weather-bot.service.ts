@@ -26,6 +26,7 @@ export class WeatherBotService {
       const data = response.data;
       return `Weather in ${data.name}: ${data.weather[0].description}, temperature: ${data.main.temp}°C`;
     } catch (error) {
+      console.error(`Error fetching weather by coordinates (${lat}, ${lon}):`, error);
       return 'Unable to retrieve the weather data. Please try again later.';
     }
   }
@@ -37,37 +38,52 @@ export class WeatherBotService {
         const data = response.data;
         return `Weather in ${data.name}: ${data.weather[0].description}, temperature: ${data.main.temp}°C`;
       } catch (error) {
+        console.error(`Error fetching weather for city (${location}):`, error);
         return 'Unable to retrieve the weather data. Please try again later.';
       }
   }
 
   private initBot() {
     bot.start((ctx) => {
+      console.log(`User ${ctx.chat.id} started bot.`);
       ctx.reply('Hi! Send me your location or type the name of a city, and I’ll send you the weather forecast.');
     });
+    
 
     bot.on('location', async (ctx) => {
-      const lat = ctx.message.location.latitude;
-      const lon = ctx.message.location.longitude;
+      try {
+        const lat = ctx.message.location.latitude;
+        const lon = ctx.message.location.longitude;
+        console.log(`Received location from user ${ctx.chat.id}: (${lat}, ${lon})`);
 
-      userLocations[ctx.chat.id] = { lat, lon };
+        userLocations[ctx.chat.id] = { lat, lon };
 
-      const weather = await this.getWeatherByCoordinates(lat, lon);
-      ctx.reply(weather);
+        const weather = await this.getWeatherByCoordinates(lat, lon);
+        ctx.reply(weather);
+      } catch (error) {
+        console.error(`Error handling location for user ${ctx.chat.id}:`, error);
+        ctx.reply('There was an error retrieving the weather for your location. Please try again.');
+      }
     });
 
     bot.on('text', async (ctx) => {
-      const city = ctx.message.text;
+      try {
+        const city = ctx.message.text;
+        console.log(`Received city from user ${ctx.chat.id}: ${city}`);
 
-      userLocations[ctx.chat.id] = { city };
+        userLocations[ctx.chat.id] = { city };
 
-      const weather = await this.getWeather(city);
-      ctx.reply(weather);
+        const weather = await this.getWeather(city);
+        ctx.reply(weather);
+      } catch (error) {
+        console.error(`Error handling city input for user ${ctx.chat.id}:`, error);
+        ctx.reply('There was an error retrieving the weather for the city you provided. Please try again.');
+      }
     });
 
     bot.launch();
+    console.log('Bot launched successfully.');
   }
-
   
   @Cron('0 8 * * *')
   async scheduleDailyWeather() {
