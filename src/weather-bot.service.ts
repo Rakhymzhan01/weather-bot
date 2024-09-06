@@ -85,23 +85,32 @@ export class WeatherBotService {
     console.log('Bot launched successfully.');
   }
   
-  @Cron('30 10 * * *', { timeZone: 'Asia/Almaty' })
+  @Cron('0 9 * * *', { timeZone: 'Asia/Almaty' })
   async scheduleDailyWeather() {
     console.log('Running scheduled daily weather update...');
-    
+  
     for (const chatId in userLocations) {
-      const locationData = userLocations[chatId];
-      let weather;
-      if (locationData.city) {
-        weather = await this.getWeather(locationData.city);
-      } 
-      else if (locationData.lat && locationData.lon) {
-        weather = await this.getWeatherByCoordinates(locationData.lat, locationData.lon);
-      } 
-      else {
-        continue;
+      try {
+        const locationData = userLocations[chatId];
+        let weather;
+  
+        if (locationData.city) {
+          console.log(`Fetching daily weather for city for user ${chatId}`);
+          weather = await this.getWeather(locationData.city);
+        } else if (locationData.lat && locationData.lon) {
+          console.log(`Fetching daily weather for coordinates for user ${chatId}`);
+          weather = await this.getWeatherByCoordinates(locationData.lat, locationData.lon);
+        } else {
+          console.log(`No location data for user ${chatId}, skipping.`);
+          continue;
+        }
+  
+        console.log(`Sending weather update to user ${chatId}`);
+        await bot.telegram.sendMessage(chatId, weather);
+        console.log(`Weather sent to user ${chatId}`);
+      } catch (error) {
+        console.error(`Error processing weather for user ${chatId}:`, error);
       }
-      bot.telegram.sendMessage(chatId, weather);
     }
   }
 }
