@@ -85,8 +85,9 @@ export class WeatherBotService {
     console.log('Bot launched successfully.');
   }
   
-  @Cron('0 8 * * *')
+  @Cron('30 10 * * *', { timeZone: 'Asia/Almaty' })
   async scheduleDailyWeather() {
+    console.log('Running scheduled daily weather update...');
     
     for (const chatId in userLocations) {
       const locationData = userLocations[chatId];
