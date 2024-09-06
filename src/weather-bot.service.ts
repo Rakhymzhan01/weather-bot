@@ -85,10 +85,15 @@ export class WeatherBotService {
     console.log('Bot launched successfully.');
   }
   
-  @Cron('0 9 * * *', { timeZone: 'Asia/Almaty' })
+  @Cron('15 11 * * *', { timeZone: 'Asia/Almaty' })
   async scheduleDailyWeather() {
     console.log('Running scheduled daily weather update...');
-  
+    
+    if (Object.keys(userLocations).length === 0) {
+      console.log('No users available for daily weather update');
+      return;
+    }
+
     for (const chatId in userLocations) {
       try {
         const locationData = userLocations[chatId];
@@ -112,5 +117,6 @@ export class WeatherBotService {
         console.error(`Error processing weather for user ${chatId}:`, error);
       }
     }
+    console.log('Daily weather update completed.');
   }
 }
