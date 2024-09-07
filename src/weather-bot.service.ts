@@ -85,7 +85,7 @@ export class WeatherBotService {
     console.log('Bot launched successfully.');
   }
   
-  @Cron('20 11 * * *', { timeZone: 'Asia/Almaty' })
+  @Cron('0 9 * * *', { timeZone: 'Asia/Almaty' })
   async scheduleDailyWeather() {
     console.log('Running scheduled daily weather update...');
     
